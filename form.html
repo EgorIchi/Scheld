@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание ГГХК</title>
+    <link rel="shortcut icon" href="image/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="css/form.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body id="body">
+    <form id="form">
+        <div class="header_form">
+            <img src="image/logo.png">
+            <h1>Авторизация</h1>
+            <p>Введите данные для авторизации</p>
+        </div>
+        <div class="body_form">
+         <input type="text" id="group" required placeholder="Группа"><input type="password" placeholder="Пароль" id="password" required>
+        </div>
+        <div class="footer_form">
+            <button onclick="checkSupabaseConnection()" type="button">Войти в систему</button>
+        </div>
+    </form>
+
+   
+</body>
+</html>
+<script>
+  const supabaseClient = supabase.createClient('https://mfbmazyamjeyaqacbman.supabase.co', 'sb_publishable_P8ncc73iaWqhkN7nv_lefA_7KfBop48')
+
+// 2. Функция проверки соединения
+async function checkSupabaseConnection() {
+  var gr=document.getElementById("group").value;
+  var pas=document.getElementById("password").value;
+  // Пробуем прочитать 1 строку из любой вашей таблицы (замените 'posts' на имя вашей таблицы)
+  const { data, error } = await supabaseClient.from('Groups').select().eq('group_name',gr).eq('password',pas)
+  localStorage.setItem("group",gr)
+  if (!data || data.length === 0) {
+    alert("Ошибка")
+  }
+  else{
+   CreateScheldure(gr)
+  }
+  
+}
+function CreateScheldure(messag){
+    
+    var b=document.getElementById("body").style.cssText="display:flex;background-color: #1c398e;justify-content: center; align-items: center; min-height:0"
+    var f=document.getElementById("form").style.cssText="display:none";
+    const body=document.body;
+    
+    body.innerHTML='<div class=container id=container>' +
+    '<div class=header>'+
+    '<img src=image/logo.png> <h3 align=center style="margin-top:10px;">Гомельский государственный <br> художественный колледж</h3></div>'+
+    '<div class=info><div><img src=image/calendare.png width="20px" height="20px"></div><p id="date"></p></div>'+
+    '<div class=buttonDay><button type=button onclick=Monday()>ПН</button><button type=button onclick=Tuesday()>ВТ</button><button type=button onclick=Wensday()>СР</button><button type=button onclick=Thursday()>ЧТ</button><button type=button onclick=Friday()>ПТ</button><button type=button onclick=Sunday()>СБ</button></div>'
+    DateShow()
+}  
+function DateShow(){
+    let da=new Date()
+    var d=document.getElementById("date");
+    d.innerText=da.getDate()+"/"+da.getMonth();
+   
+}
+async function Monday(){
+
+        var b=document.getElementById("container")
+     var gr=localStorage.getItem("group")
+     var sheldure=document.querySelectorAll('.schedule-card');
+     sheldure.forEach(Element=>{
+     Element.remove();
+     })
+      const { data, error } = await supabaseClient.from('ScheldureLesson').select(`
+      id,
+      start_time,
+      end_time,
+      day_lesson,
+       Groups!inner (
+      group_name
+      ),
+      Room!inner (
+      room_name
+      ),
+      Lesson!inner(
+      lesson_name,
+      status
+      ),
+      Teacher(
+      fam_name,
+      first_name,
+      last_name
+      )
+  `)
+  .eq('Groups.group_name', gr).eq('day_lesson','Понедельник')
+ 
+    if (!data || data.length === 0) {
+    alert("Ошибка")
+    }
+   else{
+     data.forEach(item => {
+
+      var fam=item.Teacher.fam_name+" "+item.Teacher.first_name;
+      var stat=null;
+      if(item.Lesson.status=="Занятие"){
+         stat= `<p style="color:#008236; background:#b9f8cf; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;">${item.Lesson.status}</p>`;
+      }
+      else if(item.Lesson.status=="Лекция"){
+  stat= `<p style="color:#1447e6; background:#dbeafe; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;"">${item.Lesson.status}</p>`;
+      }
+      else if(item.Lesson.status=="Факультатив"){
+         stat= `<p style="color:#8200db; background:#f3e8ff; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;"">${item.Lesson.status}</p>`;
+      }
+      
+         const lessonHTML = `
+      <div class="schedule-card" style="border: 1px solid white; background: white; color: black; padding: 10px;  margin-top:5px; margin-bottom: 5px; border-radius: 6px; font-family: sans-serif;">
+       
+       <div class="scheldure_header" style="display:flex; align-items:center; justify-content:space-between;">
+        <div class="time" style="display:flex;align-items:center; column-gap:5px;" >
+          <img src="image/clock.png" width="15px" height="15px">
+          <p style="color:#4a5565; font-size:13px"> ${item.start_time}-${item.end_time}</p>
+        </div>
+        ${stat}
+       </div>
+
+        <p style="margin-top:12px; margin-bottom:12px;"><strong> ${item.Lesson.lesson_name }</strong></p>
+       
+       
+      
+        <div class="scheldure_footer" style="display:flex; align-items:center;justify-content:space-between;">
+           <div class="fam_info" style="display:flex;align-items:center; column-gap:5px;">
+            <img src="image/person.png" width="20px" height="20px">
+            <p style="color:#4a5565; font-size:13px"> ${fam }</p>
+           </div>
+        
+           <div class=room_info style="display:flex;align-items:center; column-gap:5px;">
+             <img src="image/room.png" width="20px" height="20px">
+             <p style="color:#4a5565; font-size:13px">Ауд. ${item.Room.room_name }</p>
+           </div>
+        </div>
+      </div>
+    `;
+     b.innerHTML+=lessonHTML;
+     });
+   }
+}
+async function Tuesday(){
+     var b=document.getElementById("container")
+     var gr=localStorage.getItem("group")
+     var sheldure=document.querySelectorAll('.schedule-card');
+     sheldure.forEach(Element=>{
+     Element.remove();
+     })
+      const { data, error } = await supabaseClient.from('ScheldureLesson').select(`
+      id,
+      start_time,
+      end_time,
+      day_lesson,
+       Groups!inner (
+      group_name
+      ),
+      Room!inner (
+      room_name
+      ),
+      Lesson!inner(
+      lesson_name,
+      status
+      ),
+      Teacher(
+      fam_name,
+      first_name,
+      last_name
+      )
+  `)
+  .eq('Groups.group_name', gr).eq('day_lesson','Вторник')
+ 
+    if (!data || data.length === 0) {
+    alert("Ошибка")
+    }
+   else{
+     data.forEach(item => {
+        var fam=item.Teacher.fam_name+" "+item.Teacher.first_name;
+      var stat=null;
+      if(item.Lesson.status=="Занятие"){
+         stat= `<p style="color:#008236; background:#b9f8cf; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;">${item.Lesson.status}</p>`;
+      }
+      else if(item.Lesson.status=="Лекция"){
+  stat= `<p style="color:#1447e6; background:#dbeafe; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;"">${item.Lesson.status}</p>`;
+      }
+      else if(item.Lesson.status=="Факультатив"){
+         stat= `<p style="color:#8200db; background:#f3e8ff; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;"">${item.Lesson.status}</p>`;
+      }
+      
+         const lessonHTML = `
+      <div class="schedule-card" style="border: 1px solid white; background: white; color: black; padding: 10px;  margin-top:5px; margin-bottom: 5px; border-radius: 6px; font-family: sans-serif;">
+       
+       <div class="scheldure_header" style="display:flex; align-items:center; justify-content:space-between;">
+        <div class="time" style="display:flex;align-items:center; column-gap:5px;" >
+          <img src="image/clock.png" width="15px" height="15px">
+          <p style="color:#4a5565; font-size:13px"> ${item.start_time}-${item.end_time}</p>
+        </div>
+        ${stat}
+       </div>
+
+        <p style="margin-top:12px; margin-bottom:12px;"><strong> ${item.Lesson.lesson_name }</strong></p>
+       
+       
+      
+        <div class="scheldure_footer" style="display:flex; align-items:center;justify-content:space-between;">
+           <div class="fam_info" style="display:flex;align-items:center; column-gap:5px;">
+            <img src="image/person.png" width="20px" height="20px">
+            <p style="color:#4a5565; font-size:13px"> ${fam }</p>
+           </div>
+        
+           <div class=room_info style="display:flex;align-items:center; column-gap:5px;">
+             <img src="image/room.png" width="20px" height="20px">
+             <p style="color:#4a5565; font-size:13px">Ауд. ${item.Room.room_name }</p>
+           </div>
+        </div>
+      </div>
+    `;
+     b.innerHTML+=lessonHTML;
+     });
+   }
+}
+async function Wensday(){
+     var b=document.getElementById("container")
+     var gr=localStorage.getItem("group")
+     var sheldure=document.querySelectorAll('.schedule-card');
+     sheldure.forEach(Element=>{
+     Element.remove();
+     })
+      const { data, error } = await supabaseClient.from('ScheldureLesson').select(`
+      id,
+      start_time,
+      end_time,
+      day_lesson,
+       Groups!inner (
+      group_name
+      ),
+      Room!inner (
+      room_name
+      ),
+      Lesson!inner(
+      lesson_name,
+      status
+      ),
+      Teacher(
+      fam_name,
+      first_name,
+      last_name
+      )
+  `)
+  .eq('Groups.group_name', gr).eq('day_lesson','Среда')
+ 
+    if (!data || data.length === 0) {
+    alert("Ошибка")
+    }
+   else{
+     data.forEach(item => {
+
+      var fam=item.Teacher.fam_name+" "+item.Teacher.first_name;
+      var stat=null;
+      if(item.Lesson.status=="Занятие"){
+         stat= `<p style="color:#008236; background:#b9f8cf; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;">${item.Lesson.status}</p>`;
+      }
+      else if(item.Lesson.status=="Лекция"){
+  stat= `<p style="color:#1447e6; background:#dbeafe; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;"">${item.Lesson.status}</p>`;
+      }
+      else if(item.Lesson.status=="Факультатив"){
+         stat= `<p style="color:#8200db; background:#f3e8ff; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;"">${item.Lesson.status}</p>`;
+      }
+      
+         const lessonHTML = `
+      <div class="schedule-card" style="border: 1px solid white; background: white; color: black; padding: 10px;  margin-top:5px; margin-bottom: 5px; border-radius: 6px; font-family: sans-serif;">
+       
+       <div class="scheldure_header" style="display:flex; align-items:center; justify-content:space-between;">
+        <div class="time" style="display:flex;align-items:center; column-gap:5px;" >
+          <img src="image/clock.png" width="15px" height="15px">
+          <p style="color:#4a5565; font-size:13px"> ${item.start_time}-${item.end_time}</p>
+        </div>
+        ${stat}
+       </div>
+
+        <p style="margin-top:12px; margin-bottom:12px;"><strong> ${item.Lesson.lesson_name }</strong></p>
+       
+       
+      
+        <div class="scheldure_footer" style="display:flex; align-items:center;justify-content:space-between;">
+           <div class="fam_info" style="display:flex;align-items:center; column-gap:5px;">
+            <img src="image/person.png" width="20px" height="20px">
+            <p style="color:#4a5565; font-size:13px"> ${fam }</p>
+           </div>
+        
+           <div class=room_info style="display:flex;align-items:center; column-gap:5px;">
+             <img src="image/room.png" width="20px" height="20px">
+             <p style="color:#4a5565; font-size:13px">Ауд. ${item.Room.room_name }</p>
+           </div>
+        </div>
+      </div>
+    `;
+     b.innerHTML+=lessonHTML;
+     });
+   }
+}
+async function Thursday(){
+     var b=document.getElementById("container")
+     var gr=localStorage.getItem("group")
+     var sheldure=document.querySelectorAll('.schedule-card');
+     sheldure.forEach(Element=>{
+     Element.remove();
+     })
+      const { data, error } = await supabaseClient.from('ScheldureLesson').select(`
+      id,
+      start_time,
+      end_time,
+      day_lesson,
+       Groups!inner (
+      group_name
+      ),
+      Room!inner (
+      room_name
+      ),
+      Lesson!inner(
+      lesson_name,
+      status
+      ),
+      Teacher(
+      fam_name,
+      first_name,
+      last_name
+      )
+  `)
+  .eq('Groups.group_name', gr).eq('day_lesson','Четверг')
+ 
+    if (!data || data.length === 0) {
+    alert("Ошибка")
+    }
+   else{
+     data.forEach(item => {
+  var fam=item.Teacher.fam_name+" "+item.Teacher.first_name;
+      var stat=null;
+      if(item.Lesson.status=="Занятие"){
+         stat= `<p style="color:#008236; background:#b9f8cf; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;">${item.Lesson.status}</p>`;
+      }
+      else if(item.Lesson.status=="Лекция"){
+  stat= `<p style="color:#1447e6; background:#dbeafe; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;"">${item.Lesson.status}</p>`;
+      }
+      else if(item.Lesson.status=="Факультатив"){
+         stat= `<p style="color:#8200db; background:#f3e8ff; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;"">${item.Lesson.status}</p>`;
+      }
+      
+         const lessonHTML = `
+      <div class="schedule-card" style="border: 1px solid white; background: white; color: black; padding: 10px;  margin-top:5px; margin-bottom: 5px; border-radius: 6px; font-family: sans-serif;">
+       
+       <div class="scheldure_header" style="display:flex; align-items:center; justify-content:space-between;">
+        <div class="time" style="display:flex;align-items:center; column-gap:5px;" >
+          <img src="image/clock.png" width="15px" height="15px">
+          <p style="color:#4a5565; font-size:13px"> ${item.start_time}-${item.end_time}</p>
+        </div>
+        ${stat}
+       </div>
+
+        <p style="margin-top:12px; margin-bottom:12px;"><strong> ${item.Lesson.lesson_name }</strong></p>
+       
+       
+      
+        <div class="scheldure_footer" style="display:flex; align-items:center;justify-content:space-between;">
+           <div class="fam_info" style="display:flex;align-items:center; column-gap:5px;">
+            <img src="image/person.png" width="20px" height="20px">
+            <p style="color:#4a5565; font-size:13px"> ${fam }</p>
+           </div>
+        
+           <div class=room_info style="display:flex;align-items:center; column-gap:5px;">
+             <img src="image/room.png" width="20px" height="20px">
+             <p style="color:#4a5565; font-size:13px">Ауд. ${item.Room.room_name }</p>
+           </div>
+        </div>
+      </div>
+    `;
+     b.innerHTML+=lessonHTML;
+     });
+   }
+}
+async function Friday(){
+     var b=document.getElementById("container")
+     var gr=localStorage.getItem("group")
+     var sheldure=document.querySelectorAll('.schedule-card');
+     sheldure.forEach(Element=>{
+     Element.remove();
+     })
+      const { data, error } = await supabaseClient.from('ScheldureLesson').select(`
+      id,
+      start_time,
+      end_time,
+      day_lesson,
+       Groups!inner (
+      group_name
+      ),
+      Room!inner (
+      room_name
+      ),
+      Lesson!inner(
+      lesson_name,
+      status
+      ),
+      Teacher(
+      fam_name,
+      first_name,
+      last_name
+      )
+  `)
+  .eq('Groups.group_name', gr).eq('day_lesson','Пятница')
+ 
+    if (!data || data.length === 0) {
+    alert("Ошибка")
+    }
+   else{
+     data.forEach(item => {
+  var fam=item.Teacher.fam_name+" "+item.Teacher.first_name;
+      var stat=null;
+      if(item.Lesson.status=="Занятие"){
+         stat= `<p style="color:#008236; background:#b9f8cf; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;">${item.Lesson.status}</p>`;
+      }
+      else if(item.Lesson.status=="Лекция"){
+  stat= `<p style="color:#1447e6; background:#dbeafe; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;"">${item.Lesson.status}</p>`;
+      }
+      else if(item.Lesson.status=="Факультатив"){
+         stat= `<p style="color:#8200db; background:#f3e8ff; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;"">${item.Lesson.status}</p>`;
+      }
+      
+         const lessonHTML = `
+      <div class="schedule-card" style="border: 1px solid white; background: white; color: black; padding: 10px;  margin-top:5px; margin-bottom: 5px; border-radius: 6px; font-family: sans-serif;">
+       
+       <div class="scheldure_header" style="display:flex; align-items:center; justify-content:space-between;">
+        <div class="time" style="display:flex;align-items:center; column-gap:5px;" >
+          <img src="image/clock.png" width="15px" height="15px">
+          <p style="color:#4a5565; font-size:13px"> ${item.start_time}-${item.end_time}</p>
+        </div>
+        ${stat}
+       </div>
+
+        <p style="margin-top:12px; margin-bottom:12px;"><strong> ${item.Lesson.lesson_name }</strong></p>
+       
+       
+      
+        <div class="scheldure_footer" style="display:flex; align-items:center;justify-content:space-between;">
+           <div class="fam_info" style="display:flex;align-items:center; column-gap:5px;">
+            <img src="image/person.png" width="20px" height="20px">
+            <p style="color:#4a5565; font-size:13px"> ${fam }</p>
+           </div>
+        
+           <div class=room_info style="display:flex;align-items:center; column-gap:5px;">
+             <img src="image/room.png" width="20px" height="20px">
+             <p style="color:#4a5565; font-size:13px">Ауд. ${item.Room.room_name }</p>
+           </div>
+        </div>
+      </div>
+    `;
+     b.innerHTML+=lessonHTML;
+     });
+   }
+}
+async function Sunday(){
+     var b=document.getElementById("container")
+     var gr=localStorage.getItem("group")
+     var sheldure=document.querySelectorAll('.schedule-card');
+     sheldure.forEach(Element=>{
+     Element.remove();
+     })
+      const { data, error } = await supabaseClient.from('ScheldureLesson').select(`
+      id,
+      start_time,
+      end_time,
+      day_lesson,
+       Groups!inner (
+      group_name
+      ),
+      Room!inner (
+      room_name
+      ),
+      Lesson!inner(
+      lesson_name,
+      status
+      ),
+      Teacher(
+      fam_name,
+      first_name,
+      last_name
+      )
+  `)
+  .eq('Groups.group_name', gr).eq('day_lesson','Суббота')
+ 
+    if (!data || data.length === 0) {
+    alert("Ошибка")
+    }
+   else{
+     data.forEach(item => {
+  var fam=item.Teacher.fam_name+" "+item.Teacher.first_name;
+      var stat=null;
+      if(item.Lesson.status=="Занятие"){
+         stat= `<p style="color:#008236; background:#b9f8cf; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;">${item.Lesson.status}</p>`;
+      }
+      else if(item.Lesson.status=="Лекция"){
+  stat= `<p style="color:#1447e6; background:#dbeafe; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;"">${item.Lesson.status}</p>`;
+      }
+      else if(item.Lesson.status=="Факультатив"){
+         stat= `<p style="color:#8200db; background:#f3e8ff; border-radius:10px; padding:5px; font-size:12px; font-weight:bold;"">${item.Lesson.status}</p>`;
+      }
+      
+         const lessonHTML = `
+      <div class="schedule-card" style="border: 1px solid white; background: white; color: black; padding: 10px;  margin-top:5px; margin-bottom: 5px; border-radius: 6px; font-family: sans-serif;">
+       
+       <div class="scheldure_header" style="display:flex; align-items:center; justify-content:space-between;">
+        <div class="time" style="display:flex;align-items:center; column-gap:5px;" >
+          <img src="image/clock.png" width="15px" height="15px">
+          <p style="color:#4a5565; font-size:13px"> ${item.start_time}-${item.end_time}</p>
+        </div>
+        ${stat}
+       </div>
+
+        <p style="margin-top:12px; margin-bottom:12px;"><strong> ${item.Lesson.lesson_name }</strong></p>
+       
+       
+      
+        <div class="scheldure_footer" style="display:flex; align-items:center;justify-content:space-between;">
+           <div class="fam_info" style="display:flex;align-items:center; column-gap:5px;">
+            <img src="image/person.png" width="20px" height="20px">
+            <p style="color:#4a5565; font-size:13px"> ${fam }</p>
+           </div>
+        
+           <div class=room_info style="display:flex;align-items:center; column-gap:5px;">
+             <img src="image/room.png" width="20px" height="20px">
+             <p style="color:#4a5565; font-size:13px">Ауд. ${item.Room.room_name }</p>
+           </div>
+        </div>
+      </div>
+    `;
+     b.innerHTML+=lessonHTML;
+     });
+   }
+}
+</script>
