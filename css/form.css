@@ -1,0 +1,123 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: "Montserrat", sans-serif;
+    box-sizing: border-box; /* Важно: предотвращает выталкивание элементов из-за padding */
+}
+body {
+    background-color: #1c398e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; 
+    padding: 0px 10px; /* Сбалансированные отступы сверху и снизу */
+}
+#form {
+    display: flex;
+    align-items: center;
+    flex-direction: column;   
+    background-color: white;
+    border-radius: 24px;
+    padding: 40px 20px 24px 20px; /* Уменьшили боковые отступы внутри формы */
+    width: 100%;                  /* Занимает всю доступную ширину */
+    max-width: 440px;             /* Но не больше 440px на десктопах */
+}
+.header_form {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: 32px;
+}
+.body_form {
+    margin-bottom: 32px;
+    display: flex;
+    gap: 10px;
+    width: 100%;                  /* Растягиваем контейнер инпутов */
+}
+.body_form > input {
+    padding: 10px;
+    border-radius: 10px;
+    border: 0.5px solid black;
+    width: 100%;                  /* Инпуты делят место поровну */
+}
+.footer_form {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+.footer_form > button {
+    border-radius: 10px;
+    padding: 12px 22px;
+    border: 0.5px solid black;
+    width: 100%;                  /* Кнопка на всю ширину для удобного тапа */
+    cursor: pointer;
+}
+.header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background-color: white;
+    border-radius: 0 0 10px 10px;
+    width: 100%;
+    max-width: 440px;             /* Изменили min-width на max-width */
+}
+.info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: white;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 440px;             /* Изменили min-width на max-width */
+    margin-top: 10px;
+}
+.buttonDay {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: white;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 440px;             /* Изменили min-width на max-width */
+    margin-top: 10px;
+    gap: 5px;                     /* Отступ между кнопками дней недели */
+}
+.buttonDay > button {
+    padding: 10px 5px;            /* Чуть меньше горизонтальный отступ */
+    border-radius: 5px;
+    flex: 1;                      /* Кнопки дней будут распределяться поровну */
+    font-size: 14px;
+    cursor: pointer;
+}
+
+
+@media (max-width: 448px) {
+    /* Если инпуты не влезают в одну строку, они встанут друг под друга */
+    .body_form {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    /* Если кнопок с днями недели много и они сжимаются, разрешаем им перенос на новую строку */
+    .buttonDay {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .buttonDay > button {
+        flex: unset;
+        min-width: 80px;          /* Минимальная комфортная ширина кнопки дня на мобильном */
+        font-size: 12px;          /* Слегка уменьшаем шрифт на смартфонах */
+    }
+
+    /* Строка информации (например, время или название предмета) тоже перестроится вертикально на самых узких экранах */
+    .info {
+        flex-direction: column;
+        text-align: center;
+        gap: 5px;
+    }
+}
